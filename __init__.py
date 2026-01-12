@@ -6,8 +6,8 @@ def classFactory(iface):
     This function is called by QGIS when the plugin is loaded.
     """
     # Import the main plugin class
-    from .copy_google_maps_link_plugin import CopyGoogleMapsLinkPlugin
-    return CopyGoogleMapsLinkPlugin(iface)
+    from .copy_map_link_plugin import CopyMapLinkPlugin
+    return CopyMapLinkPlugin(iface)
 
 # You can also define other plugin metadata functions here if you prefer,
 # but it's common to keep them in the main plugin file or metadata.txt.
