@@ -41,6 +41,11 @@ class CopyMapLinkPlugin:
         # However, to be safe and manage memory, we can track actions we create.
         self.actions = []
 
+        # Cache the target CRS (EPSG:4326) to avoid repeated instantiation overhead.
+        self.target_crs = QgsCoordinateReferenceSystem("EPSG:4326")
+        if not self.target_crs.isValid():
+            QgsMessageLog.logMessage(f"{self.plugin_name}: Could not define target CRS (EPSG:4326).", self.plugin_name, Qgis.Critical)
+
         QgsMessageLog.logMessage(f"{self.plugin_name}: __init__ completed.", self.plugin_name, Qgis.Info)
 
     def initGui(self):
@@ -106,12 +111,11 @@ class CopyMapLinkPlugin:
                 iface.messageBar().pushMessage("Error", "Invalid Canvas CRS.", level=Qgis.Critical, duration=5)
                 return
 
-            target_crs = QgsCoordinateReferenceSystem("EPSG:4326")
-            if not target_crs.isValid():
+            if not self.target_crs.isValid():
                 iface.messageBar().pushMessage("Error", "Could not define target CRS (EPSG:4326).", level=Qgis.Critical, duration=5)
                 return
 
-            transform = QgsCoordinateTransform(canvas_crs, target_crs, QgsProject.instance())
+            transform = QgsCoordinateTransform(canvas_crs, self.target_crs, QgsProject.instance())
             point_wgs84 = transform.transform(clicked_point_canvas_crs)
 
             if not (point_wgs84.x() == point_wgs84.x() and point_wgs84.y() == point_wgs84.y()) or \
