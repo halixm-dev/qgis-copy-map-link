@@ -36,6 +36,7 @@ class CopyMapLinkPlugin:
         iface = qgis_iface
         self.plugin_name = "Copy Map Link"
         self.canvas = iface.mapCanvas()
+        self.target_crs = QgsCoordinateReferenceSystem("EPSG:4326")
 
         # We don't create a persistent QMenu/QAction here because we will build it dynamically
         # or add to the existing context menu.
