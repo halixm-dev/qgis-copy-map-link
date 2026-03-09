@@ -35,6 +35,7 @@ class CopyMapLinkPlugin:
         iface = qgis_iface
         self.plugin_name = "Copy Map Link"
         self.canvas = iface.mapCanvas()
+        self.target_crs = QgsCoordinateReferenceSystem("EPSG:4326")
 
         # We don't create a persistent QMenu/QAction here because we will build it dynamically
         # or add to the existing context menu.
@@ -106,12 +107,11 @@ class CopyMapLinkPlugin:
                 iface.messageBar().pushMessage("Error", "Invalid Canvas CRS.", level=Qgis.Critical, duration=5)
                 return
 
-            target_crs = QgsCoordinateReferenceSystem("EPSG:4326")
-            if not target_crs.isValid():
+            if not self.target_crs.isValid():
                 iface.messageBar().pushMessage("Error", "Could not define target CRS (EPSG:4326).", level=Qgis.Critical, duration=5)
                 return
 
-            transform = QgsCoordinateTransform(canvas_crs, target_crs, QgsProject.instance())
+            transform = QgsCoordinateTransform(canvas_crs, self.target_crs, QgsProject.instance())
             point_wgs84 = transform.transform(clicked_point_canvas_crs)
 
             if not (point_wgs84.x() == point_wgs84.x() and point_wgs84.y() == point_wgs84.y()) or \
