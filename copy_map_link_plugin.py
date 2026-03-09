@@ -92,7 +92,7 @@ class CopyMapLinkPlugin:
             zoom = math.log(591657550.5 / scale, 2)
             # Clamp zoom level between 0 and 21 (typical web map limits)
             return max(0, min(21, int(round(zoom))))
-        except Exception:
+        except (TypeError, ValueError):
             return 12 # Default fallback
 
     def copy_link(self, url_template, checked=False):
