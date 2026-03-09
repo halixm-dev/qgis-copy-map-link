@@ -4,11 +4,6 @@ from qgis.core import QgsProject, QgsCoordinateReferenceSystem, QgsCoordinateTra
 import math
 import functools
 
-# This is a common way to store a reference to the QGIS interface
-iface = None
-
-# Global variable to store the clicked point
-clicked_point_canvas_crs = None
 
 def plugin_path():
     """Helper function to get the plugin's directory (optional, but good practice for icons etc.)"""
@@ -31,10 +26,10 @@ class CopyMapLinkPlugin:
         """
         Constructor.
         """
-        global iface
-        iface = qgis_iface
+        self.iface = qgis_iface
+        self.clicked_point_canvas_crs = None
         self.plugin_name = "Copy Map Link"
-        self.canvas = iface.mapCanvas()
+        self.canvas = self.iface.mapCanvas()
 
         # We don't create a persistent QMenu/QAction here because we will build it dynamically
         # or add to the existing context menu.
@@ -54,14 +49,13 @@ class CopyMapLinkPlugin:
         """
         Called when the map canvas context menu is about to be shown.
         """
-        global clicked_point_canvas_crs
 
         # Clear previous actions to avoid memory leak
         self.actions = []
 
         if event and event.mapPoint():
             # Store the clicked point
-            clicked_point_canvas_crs = QgsPointXY(event.mapPoint())
+            self.clicked_point_canvas_crs = QgsPointXY(event.mapPoint())
 
             menu.addSeparator()
             # Create a submenu
@@ -95,29 +89,28 @@ class CopyMapLinkPlugin:
         Generates the link based on the template and copies it to clipboard.
         Accepts 'checked' argument because QAction.triggered emits a boolean.
         """
-        global clicked_point_canvas_crs
-        if not clicked_point_canvas_crs:
-            iface.messageBar().pushMessage("Error", "Could not get clicked point.", level=Qgis.Critical, duration=4)
+        if not self.clicked_point_canvas_crs:
+            self.iface.messageBar().pushMessage("Error", "Could not get clicked point.", level=Qgis.Critical, duration=4)
             return
 
         try:
             canvas_crs = self.canvas.mapSettings().destinationCrs()
             if not canvas_crs.isValid():
-                iface.messageBar().pushMessage("Error", "Invalid Canvas CRS.", level=Qgis.Critical, duration=5)
+                self.iface.messageBar().pushMessage("Error", "Invalid Canvas CRS.", level=Qgis.Critical, duration=5)
                 return
 
             target_crs = QgsCoordinateReferenceSystem("EPSG:4326")
             if not target_crs.isValid():
-                iface.messageBar().pushMessage("Error", "Could not define target CRS (EPSG:4326).", level=Qgis.Critical, duration=5)
+                self.iface.messageBar().pushMessage("Error", "Could not define target CRS (EPSG:4326).", level=Qgis.Critical, duration=5)
                 return
 
             transform = QgsCoordinateTransform(canvas_crs, target_crs, QgsProject.instance())
-            point_wgs84 = transform.transform(clicked_point_canvas_crs)
+            point_wgs84 = transform.transform(self.clicked_point_canvas_crs)
 
             if not (point_wgs84.x() == point_wgs84.x() and point_wgs84.y() == point_wgs84.y()) or \
                abs(point_wgs84.x()) == float('inf') or abs(point_wgs84.y()) == float('inf') or \
                not (-90 <= point_wgs84.y() <= 90 and -180 <= point_wgs84.x() <= 180):
-                 iface.messageBar().pushMessage("Error", "Invalid WGS84 coordinates.", level=Qgis.Critical, duration=5)
+                 self.iface.messageBar().pushMessage("Error", "Invalid WGS84 coordinates.", level=Qgis.Critical, duration=5)
                  return
 
             # Get current zoom level
@@ -130,13 +123,13 @@ class CopyMapLinkPlugin:
             clipboard = QApplication.clipboard()
             clipboard.setText(link)
 
-            iface.messageBar().pushMessage("Success", f"Link copied: {link}", level=Qgis.Success, duration=5)
+            self.iface.messageBar().pushMessage("Success", f"Link copied: {link}", level=Qgis.Success, duration=5)
 
         except Exception as e:
-            iface.messageBar().pushMessage("Error", f"Error copying link: {str(e)}", level=Qgis.Critical, duration=5)
+            self.iface.messageBar().pushMessage("Error", f"Error copying link: {str(e)}", level=Qgis.Critical, duration=5)
             QgsMessageLog.logMessage(f"Error copying link: {str(e)}", self.plugin_name, Qgis.Critical)
         finally:
-            clicked_point_canvas_crs = None
+            self.clicked_point_canvas_crs = None
 
     def unload(self):
         try:
