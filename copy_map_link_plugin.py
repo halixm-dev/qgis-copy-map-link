@@ -84,7 +84,7 @@ class CopyMapLinkPlugin:
         try:
             if scale <= 0:
                 return 0
-            zoom = math.log(591657550.5 / scale, 2)
+            zoom = math.log2(591657550.5 / scale)
             # Clamp zoom level between 0 and 21 (typical web map limits)
             return max(0, min(21, int(round(zoom))))
         except Exception:
