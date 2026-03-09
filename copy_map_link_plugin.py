@@ -1,5 +1,5 @@
 # Import necessary QGIS and Qt modules
-from qgis.PyQt.QtWidgets import QAction, QApplication, QMenu
+from qgis.PyQt.QtWidgets import QAction, QApplication
 from qgis.core import QgsProject, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsPointXY, QgsMessageLog, Qgis
 import math
 import functools
