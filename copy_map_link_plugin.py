@@ -118,9 +118,12 @@ class CopyMapLinkPlugin:
             transform = QgsCoordinateTransform(canvas_crs, self.target_crs, QgsProject.instance())
             point_wgs84 = transform.transform(clicked_point_canvas_crs)
 
-            if not (point_wgs84.x() == point_wgs84.x() and point_wgs84.y() == point_wgs84.y()) or \
-               abs(point_wgs84.x()) == float('inf') or abs(point_wgs84.y()) == float('inf') or \
-               not (-90 <= point_wgs84.y() <= 90 and -180 <= point_wgs84.x() <= 180):
+            x = point_wgs84.x()
+            y = point_wgs84.y()
+
+            if math.isnan(x) or math.isnan(y) or \
+               math.isinf(x) or math.isinf(y) or \
+               not (-180 <= x <= 180 and -90 <= y <= 90):
                  iface.messageBar().pushMessage("Error", "Invalid WGS84 coordinates.", level=Qgis.Critical, duration=5)
                  return
 
@@ -129,7 +132,7 @@ class CopyMapLinkPlugin:
             zoom = self.get_zoom_level(scale)
 
             # Format the URL
-            link = url_template.format(lat=point_wgs84.y(), lon=point_wgs84.x(), zoom=zoom)
+            link = url_template.format(lat=y, lon=x, zoom=zoom)
 
             clipboard = QApplication.clipboard()
             clipboard.setText(link)
