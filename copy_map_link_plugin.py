@@ -146,7 +146,7 @@ class CopyMapLinkPlugin:
         try:
             if self.canvas:
                 self.canvas.contextMenuAboutToShow.disconnect(self.prepare_canvas_context_menu)
-        except Exception as e:
+        except TypeError as e:
             QgsMessageLog.logMessage(f"Error disconnecting signal in unload: {str(e)}", self.plugin_name, Qgis.Warning)
 
         self.actions = []
