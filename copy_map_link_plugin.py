@@ -3,6 +3,7 @@ from qgis.PyQt.QtWidgets import QAction, QApplication, QMenu
 from qgis.core import QgsProject, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsPointXY, QgsMessageLog, Qgis
 import math
 import functools
+import urllib.parse
 
 # This is a common way to store a reference to the QGIS interface
 iface = None
@@ -124,8 +125,13 @@ class CopyMapLinkPlugin:
             scale = self.canvas.scale()
             zoom = self.get_zoom_level(scale)
 
+            # Properly encode parameters to prevent URL injection
+            safe_lat = urllib.parse.quote(str(point_wgs84.y()))
+            safe_lon = urllib.parse.quote(str(point_wgs84.x()))
+            safe_zoom = urllib.parse.quote(str(zoom))
+
             # Format the URL
-            link = url_template.format(lat=point_wgs84.y(), lon=point_wgs84.x(), zoom=zoom)
+            link = url_template.format(lat=safe_lat, lon=safe_lon, zoom=safe_zoom)
 
             clipboard = QApplication.clipboard()
             clipboard.setText(link)
